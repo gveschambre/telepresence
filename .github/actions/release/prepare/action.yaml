@@ -1,0 +1,67 @@
+name: Prepare release
+description: "Prepare release"
+inputs:
+  gh_auto_release_token:
+    description: "The token to use to authenticate with GitHub"
+    required: true
+  gh_auto_release_email:
+    description: "The email to use to authenticate with GitHub"
+    required: true
+  gh_auto_release_user:
+    description: "The user to use to authenticate with GitHub"
+    required: true
+  is_ga:
+    description: "Is ga"
+    required: true
+  telepresence_version:
+    description: "telepresence version"
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Set outputs
+      id: get_event
+      shell: bash
+      run: |
+        if [[ "${{ inputs.is_ga }}" == true ]]; then
+          echo "TELEPRESENCE_VERSION=${{ inputs.telepresence_version }}" >> $GITHUB_ENV
+        else
+          CURRENT_VERSION=$(echo $GITHUB_REF | sed -e "s/^refs\/heads\/release\///")
+          git fetch --tags
+          TAGS=$(git tag | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$" | sort -V)
+          ESCAPED_CURRENT_VERSION=$(echo $CURRENT_VERSION | sed 's/\./\\./g')
+          LAST_TAG=$(echo "$TAGS" | grep -E "^v$ESCAPED_CURRENT_VERSION(-rc\.[0-9]+)?$") || true
+
+          if [[ "$LAST_TAG" =~ -rc\.([0-9]+)$ ]]; then
+            RC_NUM=${BASH_REMATCH[1]}
+            NEXT_RC_NUM=$((RC_NUM+1))
+            NEXT_TAG="$CURRENT_VERSION-rc.$NEXT_RC_NUM"
+          else
+            NEXT_TAG="$CURRENT_VERSION-rc.0"
+          fi
+
+          echo "TELEPRESENCE_VERSION=v$(echo $NEXT_TAG)" >> $GITHUB_ENV
+
+        fi
+
+    - name: Setup Git Config
+      shell: bash
+      run: |
+        set -x
+
+        git config --global user.email '${{ inputs.GH_AUTO_RELEASE_EMAIL }}'
+        git config --global user.name '${{ inputs.GH_AUTO_RELEASE_USER }}'
+
+    - name: Commit changes
+      shell: bash
+      run: |
+        make prepare-release
+        if [[ "${{ inputs.is_ga }}" == true ]]; then
+          git push origin HEAD:${{ github.head_ref }}
+        else
+          git push origin HEAD:${{ github.ref }}
+        fi
+      env:
+        GITHUB_TOKEN: ${{ inputs.GH_AUTO_RELEASE_TOKEN }}
+
+

@@ -1,0 +1,59 @@
+name: Check commit
+description: "Check commit"
+outputs:
+  is_prepare_release:
+    description: "Is the release needs a prepare"
+    value: ${{ steps.commit_message.outputs.is_prepare_release }}
+  telepresence_version:
+    description: "The telepresence version"
+    value: ${{ steps.commit_message.outputs.telepresence_version }}
+runs:
+  using: composite
+  steps:
+  - name: Check Commit Message
+    id: commit_message
+    shell: bash
+    run: |
+      git fetch origin release/v2
+      if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+        current_version=$(echo ${{ github.head_ref }} | sed -e "s/^release\///")
+        BASE_REF=$(git rev-parse refs/remotes/origin/${{ github.base_ref }})
+        HEAD_REF=$(git rev-parse refs/remotes/origin/${{ github.head_ref }})
+        echo $BASE_REF
+        commit_subject=$(git log "$BASE_REF".."$HEAD_REF" --format=%s | grep -m1 "^Prepare v${current_version}$") || true
+
+        if [[ ! -z "$commit_subject" ]]; then
+          echo "GA - Commit found. Remove prepare commit."
+          exit 1
+        else
+          echo "GA - No match found."
+          echo "telepresence_version=v$current_version" >> $GITHUB_OUTPUT
+          echo "is_prepare_release=1" >> $GITHUB_OUTPUT
+        fi
+
+      else
+        current_version=$(echo $GITHUB_REF | sed -e "s/^refs\/heads\/release\///")
+        commit_subject=$(git log FETCH_HEAD..HEAD --format=%s | grep -m1 "^Prepare v${current_version}\+\(-rc\.[0-9]\+\)\?$") || true
+
+        # If grep doesn't find a match, it will return an empty string
+        if [[ ! -z "$commit_subject" ]]; then
+          # Check if commit subject matches the pattern and includes the 'v'
+          if [[ "$commit_subject" =~ ^Prepare\ (v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?)$ ]]; then
+            version=${BASH_REMATCH[1]}
+
+            # Check if the tag for this version already exists
+            if ! git rev-parse "$version" >& /dev/null; then
+              echo "Match found and tag does not exist for: $version"
+              echo "is_prepare_release=0" >> $GITHUB_OUTPUT
+              echo "telepresence_version=$version" >> $GITHUB_OUTPUT
+
+            else
+              echo "Match found but a tag already exists for: $version"
+              echo "is_prepare_release=1" >> $GITHUB_OUTPUT
+            fi
+          fi
+        else
+          echo "No match found."
+          echo "is_prepare_release=1" >> $GITHUB_OUTPUT
+        fi
+      fi
