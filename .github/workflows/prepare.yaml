@@ -6,12 +6,12 @@ on:
       - 'release/[0-9]+.[0-9]+.[0-9]+'
   pull_request:
     branches:
-      - 'release/**'
+      - 'release/v2'
     types: [ labeled ]
 
 jobs:
   check-commit:
-    if: (github.event_name == 'push' || (github.event_name == 'pull_request' && (github.event.label.name == 'GA' || github.event.label.name == 'RC'))) && github.actor != 'shepz-automaton'
+    if: (github.event_name == 'push' || (github.event_name == 'pull_request' && (github.event.label.name == 'GA' || github.event.label.name == 'RC') && (startsWith(github.head_ref, 'release/2') && github.base_ref == 'release/v2'))) && github.actor != 'shepz-automaton'
     runs-on: ubuntu-latest
     outputs:
       is_prepare_release: ${{ steps.check.outputs.is_prepare_release }}
