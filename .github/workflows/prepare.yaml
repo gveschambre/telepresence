@@ -35,7 +35,7 @@ jobs:
           gh_auto_release_email: ${{ secrets.GH_AUTO_RELEASE_EMAIL }}
           gh_auto_release_user: ${{ secrets.GH_AUTO_RELEASE_USER }}
           telepresence_version: ${{ needs.check-commit.outputs.telepresence_version }}
-          repository: "shepz/telepresence"
+          repository: ${{ github.repository }}
           pre_push_branch_commands: "make prepare-release"
           post_push_branch_commands: "make push-tags"
 
