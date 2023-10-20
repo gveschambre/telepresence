@@ -150,8 +150,10 @@ build-deps: pkg/client/remotefs/fuseftp.bits
 endif
 
 ifeq ($(GOHOSTOS),windows)
+	echo "Building for Windows"
 WINTUN_VERSION=0.14.1
 $(BUILDDIR)/wintun-$(WINTUN_VERSION)/wintun/bin/$(GOHOSTARCH)/wintun.dll:
+	echo "Building wintun"
 	mkdir -p $(BUILDDIR)
 	curl --fail -L https://www.wintun.net/builds/wintun-$(WINTUN_VERSION).zip -o $(BUILDDIR)/wintun-$(WINTUN_VERSION).zip
 	rm -rf  $(BUILDDIR)/wintun-$(WINTUN_VERSION)
@@ -175,6 +177,7 @@ endif
 
 ifeq ($(GOOS),windows)
 $(TELEPRESENCE_INSTALLER): $(TELEPRESENCE)
+	echo "Building Windows installer"
 	./packaging/windows-package.sh
 endif
 
