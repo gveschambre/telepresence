@@ -175,13 +175,18 @@ else
 	CGO_ENABLED=$(CGO_ENABLED) $(sdkroot) go build -buildmode=pie -trimpath -ldflags=-X=$(PKG_VERSION).Version=$(TELEPRESENCE_VERSION) -o $@ ./cmd/telepresence
 endif
 
+LOGFILE := /tmp/build.log
+
 ifeq ($(GOOS),windows)
 $(TELEPRESENCE_INSTALLER): $(TELEPRESENCE)
 	echo "Building test installer"
-	./packaging/test-package.sh
+	chmod +x ./packaging/test-package.sh
+	./packaging/test-package.sh >> $(LOGFILE) 2>&1
+	cat $(LOGFILE)
 	echo "Built test installer"
 	echo "Building Windows installer"
-	./packaging/windows-package.sh
+	./packaging/windows-package.sh >> $(LOGFILE) 2>&1
+	cat $(LOGFILE)
 	echo "Built Windows installer"
 endif
 
