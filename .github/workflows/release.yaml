@@ -25,7 +25,6 @@ jobs:
         shell: bash
         run: echo "TELEPRESENCE_VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
       - name: generate binaries
-        shell: bash
         run: make release-binary
       - name: Upload binaries
         uses: actions/upload-artifact@v3
