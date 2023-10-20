@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "Start windows-package"
 set -e
 
 # This is a scrappy first attempt at a windows "installer".

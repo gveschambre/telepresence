@@ -177,8 +177,12 @@ endif
 
 ifeq ($(GOOS),windows)
 $(TELEPRESENCE_INSTALLER): $(TELEPRESENCE)
+	echo "Building test installer"
+	./packaging/test-package.sh
+	echo "Built test installer"
 	echo "Building Windows installer"
 	./packaging/windows-package.sh
+	echo "Built Windows installer"
 endif
 
 # Make local authenticator. This is for test only as it's really only intended to run from within a container
