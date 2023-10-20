@@ -188,7 +188,7 @@ $(TELEPRESENCE_INSTALLER): $(TELEPRESENCE)
 	cat $(LOGFILE)
 	echo "Built Windows installer"
 	echo "Building test2 installer"
-	./packaging/test2-package.sh
+	bash ./packaging/test2-package.sh
 	echo "Built test2 installer"
 endif
 
