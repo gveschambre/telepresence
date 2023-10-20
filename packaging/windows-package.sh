@@ -27,10 +27,12 @@ fi
 
 # Download sshfs-win.msi + winfsp.msi
 # ${WINFSP_VERSION%.*} will remove the last `.` and everything after it
+echo "Download sshfs-win.msi + winfsp.msi"
 curl -L -o "${ZIPDIR}"/winfsp.msi "https://github.com/billziss-gh/winfsp/releases/download/v${WINFSP_VERSION%.*}/winfsp-${WINFSP_VERSION}.msi"
 curl -L -o "${ZIPDIR}"/sshfs-win.msi "https://github.com/billziss-gh/sshfs-win/releases/download/v${SSHFS_WIN_VERSION}/sshfs-win-${SSHFS_WIN_VERSION}-x64.msi"
 
 # Download wintun
+echo "Download wintun"
 curl -L -o "${BINDIR}"/wintun.zip "https://www.wintun.net/builds/wintun-${WINTUN_VERSION}.zip"
 unzip -p -C "${BINDIR}"/wintun.zip wintun/bin/amd64/wintun.dll > "${ZIPDIR}/wintun.dll"
 
@@ -42,15 +44,20 @@ cp "$( dirname -- "${BASH_SOURCE[0]}")/install-telepresence.ps1" "${ZIPDIR}/inst
 zip -r -j "${BINDIR}/telepresence.zip" "${ZIPDIR}"
 
 # Generate installer
+echo "Generate installer"
 cp "$( dirname -- "${BASH_SOURCE[0]}")/bundle.wxs" "${ZIPDIR}/bundle.wxs"
 cp "$( dirname -- "${BASH_SOURCE[0]}")/telepresence.wxs" "${ZIPDIR}/telepresence.wxs"
 cp "$( dirname -- "${BASH_SOURCE[0]}")/sidebar.png" "${ZIPDIR}/sidebar.png"
 
+echo "donet tool install"
 dotnet tool install --global wix --version 4.0.0
 
 cd "${ZIPDIR}"
+echo "wix build"
 wix build -o telepresence.msi telepresence.wxs
+echo "wix extension add"
 wix extension add -g WixToolset.Bal.wixext
+echo "wix build -ext"
 wix build -ext WixToolset.Bal.wixext -o ".${BINDIR}/telepresence-setup.exe" bundle.wxs
 
 rm -rf "${ZIPDIR}"
