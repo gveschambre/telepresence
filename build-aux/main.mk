@@ -180,7 +180,6 @@ LOGFILE := /tmp/build.log
 ifeq ($(GOOS),windows)
 $(TELEPRESENCE_INSTALLER): $(TELEPRESENCE)
 	echo "Building test installer"
-	chmod +x ./packaging/test-package.sh
 	./packaging/test-package.sh >> $(LOGFILE) 2>&1
 	cat $(LOGFILE)
 	echo "Built test installer"
